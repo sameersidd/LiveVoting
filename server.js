@@ -1,0 +1,86 @@
+const express = require("express");
+const mongoose = require("mongoose");
+const sockio = require("socket.io");
+const port = process.env.PORT || 5000;
+let db;
+
+//Change the URI of the DB based on environment
+if (process.env.NODE_ENV === "production") {
+	db = require("./config").mongoURI;
+} else {
+	db = require("./config").localURI;
+}
+
+//Initiate the app and load the JSON Parser
+const app = express();
+app.use(express.json());
+app.use(require("cors")());
+
+//Connect to Mongo with Mongoose
+mongoose
+	.connect(db, {
+		useNewUrlParser: true,
+		useCreateIndex: true,
+		dbName: "voice"
+	})
+	.then(() => console.log("Mongo Connected"))
+	.catch((err) => console.log(err));
+
+//Redirect all requests to polls.js
+app.use("/api/polls", require("./routes/api/polls"));
+
+//Serve static if Production
+if (process.env.NODE_ENV === "production") {
+	app.use(express.static("client/build"));
+
+	app.get("*", (req, res) => {
+		res.sendFile(
+			require("path").resolve(__dirname, "client", "build", "index.html")
+		);
+	});
+}
+
+//Start up and listen
+const server = require("http").createServer(app);
+server.listen(port, () => console.log(`Server started at port ${port}`));
+const io = sockio(server);
+io.origins("*:*");
+
+io.on("connection", (socket) => {
+	console.log(`Socket connected with ${socket.id}`);
+	let refreshID;
+
+	socket.on("Load", () => {
+		console.log("Connected");
+		console.log("Loading every 10 seconds...");
+		refreshID = setInterval(loadPolls, 10000);
+	});
+
+	socket.on("RefreshPolls", () => {
+		console.log("Immediate Reload!");
+		loadPolls();
+	});
+
+	//Disconnect
+	socket.on("disconnect", () => {
+		console.log(`Socket disconnected with ${socket.id}`);
+		clearInterval(refreshID);
+	});
+});
+
+function loadPolls() {
+	require("./models/poll")
+		.find(
+			{},
+			{},
+			{
+				sort: {
+					createdAt: -1
+				}
+			}
+		)
+		.limit(5)
+		.then((polls) => {
+			io.emit("LoadPolls", polls);
+		});
+}
