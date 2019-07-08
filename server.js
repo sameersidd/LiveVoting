@@ -46,7 +46,7 @@ app.options("*", require("cors")());
 app.listen(ePort, () => console.log(`E Server started at port ${ePort}`));
 const server = require("http").createServer(app);
 server.listen(sPort, () => console.log(`S Server started at port ${sPort}`));
-const io = sockio(server, { origins: "http://localhost:* http://127.0.0.1:*" });
+const io = sockio(server, { origins: "*:*" });
 // io.origins("*:*");
 
 //Socket io Connections
