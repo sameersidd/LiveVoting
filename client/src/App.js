@@ -13,17 +13,23 @@ import {
 	Input,
 	Label,
 	Button,
-	CardLink
+	CardLink,
+	Navbar,
+	NavbarBrand,
+	Row
 } from "reactstrap";
 import socketIOClient from "socket.io-client";
 
-const endpoint = "http://127.0.0.1:5000";
-const socket = socketIOClient(endpoint);
+const endpoint = "http://localhost:5001";
+const socket = socketIOClient(endpoint, {
+	transports: ["websockets", "polling"]
+});
 class App extends Component {
 	constructor() {
 		super();
 		this.state = {
-			response: false,
+			rResponse: false,
+			tResponse: false,
 			title: "",
 			description: "",
 			option_1: "",
@@ -36,13 +42,18 @@ class App extends Component {
 	componentDidMount() {
 		setTimeout(() => {
 			socket.emit("Load");
-			socket.on("LoadPolls", (data) => {
-				this.setState({ response: true, polls: data });
+			socket.on("LoadRecentPolls", (data) => {
+				this.setState({ rResponse: true, rPolls: data });
 			});
-		}, 10000);
+			socket.on("LoadTrendingPolls", (data) => {
+				this.setState({ tResponse: true, tPolls: data });
+			});
+		}, 5000);
 	}
 
-	com;
+	componentWillUnmount() {
+		socket.close();
+	}
 
 	onChange = (e) => {
 		this.setState({
@@ -72,119 +83,149 @@ class App extends Component {
 				}
 			]
 		});
-		console.log(poll);
+		console.log(JSON.parse(poll));
 		axios
 			.post("/api/polls", poll, {
 				headers: {
 					"Content-type": "application/json"
 				}
 			})
-			.then(() => {
-				socket.emit("RefreshPolls");
-			})
 			.catch((err) => console.log(err));
 	};
 
 	render() {
-		const { response, polls } = this.state;
+		const { rResponse, tResponse, rPolls, tPolls } = this.state;
 		return (
-			<div>
-				<Container>
-					<div style={{ textAlign: "center" }}>
-						{response ? (
+			<div style={{ backgroundColor: "#CCCCF1" }}>
+				<Navbar sticky="true" style={{ backgroundColor: "#8186F6" }}>
+					<NavbarBrand href="#" color="white">
+						Voice
+					</NavbarBrand>
+				</Navbar>
+				<Row>
+					<Container className="col-6 offset-1">
+						<div>
+							<Card>
+								<CardHeader>New Poll</CardHeader>
+								<CardBody>
+									<Form id="new_poll" onSubmit={this.submitPoll}>
+										<FormGroup>
+											<Label>Title</Label>
+											<Input
+												type="text"
+												placeholder="Title"
+												name="title"
+												onChange={this.onChange}
+											/>
+										</FormGroup>
+										<FormGroup>
+											<Label>Description</Label>
+											<Input
+												type="text"
+												placeholder="Description about the Poll"
+												name="description"
+												onChange={this.onChange}
+											/>
+										</FormGroup>
+										<FormGroup>
+											<Label>Option 1</Label>
+											<Input
+												type="text"
+												placeholder="Option 1"
+												name="option_1"
+												onChange={this.onChange}
+											/>
+										</FormGroup>
+										<FormGroup>
+											<Label>Option 2</Label>
+											<Input
+												type="text"
+												placeholder="Option 2"
+												name="option_2"
+												onChange={this.onChange}
+											/>
+										</FormGroup>
+										<FormGroup>
+											<Label>Option 3</Label>
+											<Input
+												type="text"
+												placeholder="Option 3"
+												name="option_3"
+												onChange={this.onChange}
+											/>
+										</FormGroup>
+										<FormGroup>
+											<Label>Option 4</Label>
+											<Input
+												type="text"
+												placeholder="Option 4"
+												name="option_4"
+												onChange={this.onChange}
+											/>
+										</FormGroup>
+										<FormGroup>
+											<Button color="dark">Submit</Button>
+										</FormGroup>
+									</Form>
+								</CardBody>
+							</Card>
+						</div>
+					</Container>
+					<Container className="col-4  offset-1">
+						<div style={{ textAlign: "center" }}>
 							<Card
 								color="primary"
 								style={{ backgroundColor: "#333", borderColor: "#333" }}
 							>
 								<CardHeader>Recent Polls</CardHeader>
-								<CardBody>
-									<ListGroup>
-										{polls.map(({ _id, title }) => (
-											<ListGroupItem
-												key={_id}
-												style={{ listStyleType: "none" }}
-											>
-												<CardLink href={`/poll/${_id}`}>
-													<ListGroupItemText>{title}</ListGroupItemText>
-												</CardLink>
-											</ListGroupItem>
-										))}
-									</ListGroup>
-								</CardBody>
+								{rResponse ? (
+									<CardBody>
+										<ListGroup>
+											{rPolls.map(({ _id, title }) => (
+												<ListGroupItem
+													key={_id}
+													style={{ listStyleType: "none" }}
+												>
+													<CardLink href={`/poll/${_id}`}>
+														<ListGroupItemText>{title}</ListGroupItemText>
+													</CardLink>
+												</ListGroupItem>
+											))}
+										</ListGroup>
+									</CardBody>
+								) : (
+									<p>Loading...</p>
+								)}
 							</Card>
-						) : (
-							<p>Loading...</p>
-						)}
-					</div>
-				</Container>
-				<Container>
-					<div>
-						<Card>
-							<CardHeader>New Poll</CardHeader>
-							<CardBody>
-								<Form id="new_poll" onSubmit={this.submitPoll}>
-									<FormGroup>
-										<Label>Title</Label>
-										<Input
-											type="text"
-											placeholder="Title"
-											name="title"
-											onChange={this.onChange}
-										/>
-									</FormGroup>
-									<FormGroup>
-										<Label>Description</Label>
-										<Input
-											type="text"
-											placeholder="Description about the Poll"
-											name="description"
-											onChange={this.onChange}
-										/>
-									</FormGroup>
-									<FormGroup>
-										<Label>Option 1</Label>
-										<Input
-											type="text"
-											placeholder="Option 1"
-											name="option_1"
-											onChange={this.onChange}
-										/>
-									</FormGroup>
-									<FormGroup>
-										<Label>Option 2</Label>
-										<Input
-											type="text"
-											placeholder="Option 2"
-											name="option_2"
-											onChange={this.onChange}
-										/>
-									</FormGroup>
-									<FormGroup>
-										<Label>Option 3</Label>
-										<Input
-											type="text"
-											placeholder="Option 3"
-											name="option_3"
-											onChange={this.onChange}
-										/>
-									</FormGroup>
-									<FormGroup>
-										<Label>Option 4</Label>
-										<Input
-											type="text"
-											placeholder="Option 4"
-											name="option_4"
-											onChange={this.onChange}
-										/>
-									</FormGroup>
-									<FormGroup>
-										<Button color="dark">Submit</Button>
-									</FormGroup>
-								</Form>
-							</CardBody>
-						</Card>
-					</div>
-				</Container>
+						</div>
+						<div style={{ textAlign: "center" }}>
+							<Card
+								color="primary"
+								style={{ backgroundColor: "#333", borderColor: "#333" }}
+							>
+								<CardHeader>Trending Polls</CardHeader>
+								{tResponse ? (
+									<CardBody>
+										<ListGroup>
+											{tPolls.map(({ _id, title }) => (
+												<ListGroupItem
+													key={_id}
+													style={{ listStyleType: "none" }}
+												>
+													<CardLink href={`/poll/${_id}`}>
+														<ListGroupItemText>{title}</ListGroupItemText>
+													</CardLink>
+												</ListGroupItem>
+											))}
+										</ListGroup>
+									</CardBody>
+								) : (
+									<p>Loading...</p>
+								)}
+							</Card>
+						</div>
+					</Container>
+				</Row>
 			</div>
 		);
 	}
