@@ -20,7 +20,7 @@ import {
 } from "reactstrap";
 import socketIOClient from "socket.io-client";
 
-const endpoint = "http://localhost:5001";
+const endpoint = "//localhost:5001";
 const socket = socketIOClient(endpoint, {
 	transports: ["websockets", "polling"]
 });
