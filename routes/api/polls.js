@@ -96,7 +96,7 @@ router.post("/", (req, res) => {
 		.save()
 		.then((poll) => {
 			res.json(poll);
-			console.log("Call from polls.js");
+			//console.log("Call from polls.js");
 			dbEvent.emit("NewPoll", poll);
 		})
 		.catch((err) => {

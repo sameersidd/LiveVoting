@@ -20,22 +20,26 @@ import {
 } from "reactstrap";
 import socketIOClient from "socket.io-client";
 
-const endpoint = window.location.hostname + ":5001";
-const socket = socketIOClient(endpoint, {
-	transports: ["websockets", "polling"]
-});
+const initial = {
+	title: "",
+	description: "",
+	option_1: "",
+	option_2: "",
+	option_3: "",
+	option_4: ""
+};
+//const endpoint = window.location.hostname;
+// const socket = socketIOClient(endpoint, {
+// 	transports: ["websockets", "polling"]
+// });
+const socket = socketIOClient({ transports: ["websockets", "polling"] });
 class App extends Component {
 	constructor() {
 		super();
 		this.state = {
 			rResponse: false,
 			tResponse: false,
-			title: "",
-			description: "",
-			option_1: "",
-			option_2: "",
-			option_3: "",
-			option_4: ""
+			...initial
 		};
 	}
 
@@ -90,7 +94,14 @@ class App extends Component {
 					"Content-type": "application/json"
 				}
 			})
-			.catch((err) => console.log(err));
+			.then((res) => {
+				console.log(res);
+				this.state = initial;
+			})
+			.catch((err) => {
+				console.log(err);
+				alert("Error. Try Again");
+			});
 	};
 
 	render() {

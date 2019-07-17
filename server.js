@@ -13,6 +13,10 @@ if (process.env.NODE_ENV === "production") {
 	db = require("./config").localURI;
 }
 
+process.on("uncaughtException", function(err) {
+	console.log(err);
+});
+
 //Initiate the app and load the JSON Parser
 const app = express();
 app.use(express.json());
@@ -43,9 +47,11 @@ if (process.env.NODE_ENV === "production") {
 
 //Start up and listen
 app.options("*", require("cors")());
-app.listen(ePort, () => console.log(`E Server started at port ${ePort}`));
-const server = require("http").createServer(app);
-server.listen(sPort, () => console.log(`S Server started at port ${sPort}`));
+const server = app.listen(ePort, () =>
+	console.log(`E Server started at port ${ePort}`)
+);
+// const server = require("http").createServer(app);
+// server.listen(sPort, () => console.log(`S Server started at port ${sPort}`));
 const io = sockio(server, { origins: "*:*" });
 // io.origins("*:*");
 
