@@ -22,6 +22,7 @@ class Poll extends Component {
 		this.state = {
 			response: false,
 			SubmitResponse: false,
+			ViewResults: false,
 			poll: {},
 			option: ""
 		};
@@ -45,8 +46,12 @@ class Poll extends Component {
 
 	submitPoll = (e) => {
 		e.preventDefault();
-		this.setState({ SubmitResponse: true });
 		const { option } = this.state;
+		if (option == "" || null) {
+			alert("Please select an option to submit!");
+			return;
+		}
+		this.setState({ SubmitResponse: true, ViewResults: true });
 		const poll = JSON.stringify({
 			option
 		});
@@ -60,7 +65,7 @@ class Poll extends Component {
 	};
 
 	render() {
-		const { response, SubmitResponse } = this.state;
+		const { response, ViewResults } = this.state;
 		const { title, description, options, hits } = this.state.poll;
 		return (
 			<div style={{ backgroundColor: "#CCCCF1" }}>
@@ -70,7 +75,7 @@ class Poll extends Component {
 					</NavbarBrand>
 				</Navbar>
 				<Row>
-					{SubmitResponse ? null : (
+					{ViewResults ? null : (
 						<Container className="col-6 mt-3 mb-3">
 							{response ? (
 								<div>
@@ -121,6 +126,11 @@ class Poll extends Component {
 
 												<Button color="dark">Submit</Button>
 											</Form>
+											<Button
+												onClick={() => this.setState({ ViewResults: true })}
+											>
+												View Results
+											</Button>
 										</CardBody>
 									</Card>
 								</div>
@@ -129,7 +139,7 @@ class Poll extends Component {
 							)}
 						</Container>
 					)}
-					{SubmitResponse ? (
+					{ViewResults ? (
 						<Container className="col-6 mt-3 mb-3">
 							<div style={{ textAlign: "center" }}>
 								<Card style={{ borderColor: "#333" }}>
