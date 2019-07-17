@@ -34,7 +34,7 @@ app.use("/api/polls", require("./routes/api/polls"));
 if (process.env.NODE_ENV === "production") {
 	app.use(express.static("client/build"));
 
-	app.get("/", (req, res) => {
+	app.get("/*", (req, res) => {
 		res.sendFile(
 			require("path").resolve(__dirname, "client", "build", "index.html")
 		);

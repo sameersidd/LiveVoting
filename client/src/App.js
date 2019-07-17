@@ -20,7 +20,7 @@ import {
 } from "reactstrap";
 import socketIOClient from "socket.io-client";
 
-const endpoint = "http://localhost:5001";
+const endpoint = window.location.hostname + ":5001";
 const socket = socketIOClient(endpoint, {
 	transports: ["websockets", "polling"]
 });
@@ -48,7 +48,7 @@ class App extends Component {
 			socket.on("LoadTrendingPolls", (data) => {
 				this.setState({ tResponse: true, tPolls: data });
 			});
-		}, 5000);
+		}, 1000);
 	}
 
 	componentWillUnmount() {
